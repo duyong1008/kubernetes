@@ -1,0 +1,20 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: rbd
+  annotations:
+     storageclass.beta.kubernetes.io/is-default-class: "true"
+provisioner: ceph.com/rbd
+parameters:
+  monitors: 10.0.4.80:6789,10.0.4.74:6789,10.0.4.75:6789  
+  adminId: admin
+  adminSecretName: ceph-secret-admin
+  adminSecretNamespace: default
+  pool: test-pool  
+  userId: admin
+  userSecretName: ceph-secret-admin
+  fsType: ext4
+  imageFormat: "2"
+  imageFeatures: "layering"
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
