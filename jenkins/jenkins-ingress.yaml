@@ -1,0 +1,14 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: jenkins
+  namespace: kube-system
+spec:
+  rules:
+  - host: jenkins.fbh.com
+    http:
+      paths:
+      - backend:
+          serviceName: jenkins
+          servicePort: 8080
+        path: /

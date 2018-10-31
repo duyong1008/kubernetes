@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: artifactory-ingress
+spec:
+  rules:
+  - host: maven.fanbuy.com.cn
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: artifactory-artifactory-nginx
+          servicePort: 80
+  - host: fanbuy.maven.fanbuy.com.cn
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: artifactory-artifactory-nginx
+          servicePort: 80
