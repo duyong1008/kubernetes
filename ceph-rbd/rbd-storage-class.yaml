@@ -6,7 +6,7 @@ metadata:
      storageclass.beta.kubernetes.io/is-default-class: "true"
 provisioner: ceph.com/rbd
 parameters:
-  monitors: 10.0.4.80:6789,10.0.4.74:6789,10.0.4.75:6789  
+  monitors: 10.0.4.92:6789,10.0.4.93:6789,10.0.4.97:6789  
   adminId: admin
   adminSecretName: ceph-secret-admin
   adminSecretNamespace: default
