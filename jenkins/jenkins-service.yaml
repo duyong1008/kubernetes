@@ -5,7 +5,6 @@ metadata:
   labels:
     k8s-app: jenkins
   name: jenkins
-  namespace: kube-system
   annotations:
     prometheus.io/scrape: 'true'
 spec:

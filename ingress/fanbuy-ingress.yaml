@@ -7,10 +7,10 @@ metadata:
     ingress.kubernetes.io/proxy-body-size: "1024M"
 spec:
   rules:
-  - host: git.fanbuy
+  - host: jenkins.fanbuy
     http:
       paths:
-      - path: /
-        backend:
-          serviceName: gitlab-ce-gitlab-ce 
-          servicePort: 80
+      - backend:
+          serviceName: jenkins
+          servicePort: 8080
+        path: /
