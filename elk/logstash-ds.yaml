@@ -1,0 +1,132 @@
+kind: List
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: logstash-config
+    labels:
+      k8s-app: logstash 
+      kubernetes.io/cluster-service: "true"
+      app: logstash-config
+  data:
+    logstash.conf: |
+      input {
+        file {
+          path => ["/usr/share/logstash/logs/*.log"]
+          start_position => "beginning"
+          codec => multiline {                                                                                                                                                                                        
+            pattern => "^%{TIMESTAMP_ISO8601}"                                                                                                                                                                      
+            what => "previous"                                                                                                                                                                                      
+            negate => true                                                                                                                                                                                          
+          } 
+        }
+      }
+      filter {
+        grok {
+          match => ["message","%{TIMESTAMP_ISO8601:access_time}\s+%{LOGLEVEL:loglevel}\s+(?<thread_id>(\w+)) --- \[(?<thread_name>(\s*[\w-]+))\] (?<class>([\w-$.]+))\s*\:(?<meg>(.*))"]
+        }
+        grok {
+          match => ["path","(?<project>(\w+-){3}(\w+))"]
+        }
+        #删除无用字段
+        mutate {  
+          remove_field => "meg"
+          remove_field => "path"
+          remove_field => "@version"    
+        }
+      }
+      output {
+        elasticsearch {
+          hosts => ["es-cluster:9200"]
+          index => "logstash-%{+YYYY.MM.dd}"
+        }
+        stdout { 
+          codec => rubydebug 
+        }
+      }
+- apiVersion: extensions/v1beta1
+  kind: DaemonSet
+  #kind: Deployment
+  metadata:
+    name: logstash
+    namespace: default
+    labels:
+      k8s-app: logstash
+      kubernetes.io/cluster-service: "true"
+  spec:
+    #replicas: 1
+    template:
+      metadata:
+        name: logstash
+        labels:
+          app: logstash
+          k8s-app: logstash
+          kubernetes.io/cluster-service: "true"
+      spec:
+        containers:
+        - image: logstash
+          name: logstash
+          command:
+          - logstash
+          - '-f'
+          - '/usr/share/logstash/pipeline/logstash.conf'
+          - '--config.reload.automatic'
+          env:
+            - name: "XPACK_MONITORING_ELASTICSEARCH_URL"
+              value: "http://es-cluster:9200"
+            - name: "PATH_CONFIG"
+              value: "/usr/share/logstash/pipeline"
+            - name: "CONFIG_RELOAD_AUTOMATIC"
+              value: "true"
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+          - name: logstash-setting
+            mountPath: /usr/share/logstash/pipeline
+          - name: logstash-logs
+            mountPath: /usr/share/logstash/logs
+        volumes:
+          - name: logstash-logs
+            hostPath:
+              path: /data/logs
+          - name: logstash-setting
+            configMap:
+              name: logstash-config
+              items:
+              - key: logstash.conf
+                path: logstash.conf
+- apiVersion: rbac.authorization.k8s.io/v1beta1
+  kind: ClusterRoleBinding
+  metadata:
+    name: logstash
+  subjects:
+  - kind: ServiceAccount
+    name: logstash
+    namespace: default
+  roleRef:
+    kind: ClusterRole
+    name: logstash
+    apiGroup: rbac.authorization.k8s.io
+- apiVersion: rbac.authorization.k8s.io/v1beta1
+  kind: ClusterRole
+  metadata:
+    name: logstash
+    labels:
+      k8s-app: logstash
+  rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources:
+    - namespaces
+    - pods
+    verbs:
+    - get
+    - watch
+    - list
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: logstash
+    namespace: default
+    labels:
+      k8s-app: logstash

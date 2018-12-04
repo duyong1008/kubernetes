@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: dev
+data:
+  filebeat.yml: |-
+    filebeat.prospectors:
+    - type: log
+      paths:
+        - /opt/*.log
+    multiline:
+      pattern: '^[[:space:]]'
+      negate: false
+      match: after
+    #processors:
+    #- drop_fields:
+    #    fields: ["input_type", "beat", "host", "offset", "tags", "prospector", "input"]
+    output.logstash:
+      hosts: ['10.0.4.106:5043']

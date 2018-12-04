@@ -1,18 +1,17 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: fanbuy-ingress
-  namespace: dev
+  name: default-ingress
   annotations:
     ingress.kubernetes.io/secure-backends: "true"
     ingress.kubernetes.io/proxy-body-size: "1024M"
     #nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: gateway.dev.fanbuy
+  - host: kibana.dev.fanbuy
     http:
       paths:
       - backend:
-          serviceName: dev-fanbuy-server-gateway
-          servicePort: 8080
+          serviceName: kb-single-svc
+          servicePort: 5601
         path: /
